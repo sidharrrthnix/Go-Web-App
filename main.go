@@ -35,6 +35,7 @@ func main() {
 
 	// Services
 	userService := &models.UserService{DB: db}
+	sessionService := &models.SessionService{DB: db}
 
 	// CSRF protection
 	csrfKey := []byte("32-byte-long-auth-key-here-now!!")
@@ -56,6 +57,7 @@ func main() {
 		SignupTemplate: views.Must(views.ParseFS(templates.FS, "signup.gohtml", "tailwind.gohtml")),
 		SigninTemplate: views.Must(views.ParseFS(templates.FS, "signin.gohtml", "tailwind.gohtml")),
 		UserService:    userService,
+		SessionService: sessionService,
 	}
 
 	// Router with CSRF

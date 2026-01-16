@@ -11,6 +11,7 @@ services:
     volumes:
       # PostgreSQL 18+ requires mounting at /var/lib/postgresql (not /data subdirectory)
       - postgres_data:/var/lib/postgresql
+      - ./model/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 10s
