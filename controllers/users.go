@@ -13,6 +13,7 @@ type Users struct {
 	SignupTemplate views.Template
 	SigninTemplate views.Template
 	UserService    *models.UserService
+	SessionService *models.SessionService
 }
 
 func (u *Users) Signup(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +37,21 @@ func (u *Users) CreateUser(w http.ResponseWriter, r *http.Request) {
 
 	log.Printf("Created user: %s (id: %d)", user.Email, user.ID)
 	fmt.Fprintf(w, "User created! Email: %s, ID: %d", user.Email, user.ID)
+
+	session, err := u.SessionService.Create(user.ID)
+	if err != nil {
+		fmt.Printf("Error creating session: %v", err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+	cookie := http.Cookie{
+		Name:     "session",
+		Value:    session.Token,
+		Path:     "/",
+		HttpOnly: true,
+	}
+	http.SetCookie(w, &cookie)
+	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
 func (u *Users) Signin(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +70,35 @@ func (u *Users) ProcessSignin(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid credentials", http.StatusUnauthorized)
 		return
 	}
-
+	session, err := u.SessionService.Create(user.ID)
+	if err != nil {
+		fmt.Printf("Error creating session: %v", err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+	cookie := http.Cookie{
+		Name:     "session",
+		Value:    session.Token,
+		Path:     "/",
+		HttpOnly: true,
+	}
 	fmt.Fprintf(w, "Welcome back, %s!", user.Email)
+	http.SetCookie(w, &cookie)
+	http.Redirect(w, r, "/users/me", http.StatusFound)
+}
+
+func (u *Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
+	cookie, err := r.Cookie("session")
+	if err != nil {
+		log.Printf("Error getting session cookie: %v", err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+	user, err := u.SessionService.User(cookie.Value)
+	if err != nil {
+		log.Printf("Error getting user from session: %v", err)
+		http.Redirect(w, r, "/signin", http.StatusFound)
+		return
+	}
+	fmt.Fprintf(w, "Current user: %s", user.Email)
 }

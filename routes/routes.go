@@ -23,6 +23,7 @@ func NewRouter(static *controllers.Static, users *controllers.Users) *chi.Mux {
 	r.Post("/users", users.CreateUser)
 	r.Get("/signin", users.Signin)
 	r.Post("/signin", users.ProcessSignin)
+	r.Get("/users/me", users.CurrentUser)
 
 	r.NotFound(controllers.NotFound)
 
