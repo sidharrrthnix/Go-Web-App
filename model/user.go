@@ -1,4 +1,5 @@
-package models
+// Package model provides database models and services for user management.
+package model
 
 import (
 	"database/sql"

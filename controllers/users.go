@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	models "web-app.com/simple/sql"
+	models "web-app.com/simple/model"
 	"web-app.com/simple/views"
 )
 
@@ -43,13 +43,7 @@ func (u *Users) CreateUser(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/signin", http.StatusFound)
 		return
 	}
-	cookie := http.Cookie{
-		Name:     "session",
-		Value:    session.Token,
-		Path:     "/",
-		HttpOnly: true,
-	}
-	http.SetCookie(w, &cookie)
+	setCookie(w, CookieSession, session.Token)
 	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
@@ -75,25 +69,19 @@ func (u *Users) ProcessSignin(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, "/signin", http.StatusFound)
 		return
 	}
-	cookie := http.Cookie{
-		Name:     "session",
-		Value:    session.Token,
-		Path:     "/",
-		HttpOnly: true,
-	}
+	setCookie(w, CookieSession, session.Token)
 	log.Printf("Welcome back, %s!", user.Email)
-	http.SetCookie(w, &cookie)
 	http.Redirect(w, r, "/users/me", http.StatusFound)
 }
 
 func (u *Users) CurrentUser(w http.ResponseWriter, r *http.Request) {
-	cookie, err := r.Cookie("session")
+	token, err := readCookie(r, CookieSession)
 	if err != nil {
 		log.Printf("Error getting session cookie: %v", err)
 		http.Redirect(w, r, "/signin", http.StatusFound)
 		return
 	}
-	user, err := u.SessionService.User(cookie.Value)
+	user, err := u.SessionService.User(token)
 	if err != nil {
 		log.Printf("Error getting user from session: %v", err)
 		http.Redirect(w, r, "/signin", http.StatusFound)

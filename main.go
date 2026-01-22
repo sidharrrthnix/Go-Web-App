@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"web-app.com/simple/controllers"
+	models "web-app.com/simple/model"
 	"web-app.com/simple/routes"
-	models "web-app.com/simple/sql"
 	"web-app.com/simple/templates"
 	"web-app.com/simple/views"
 
